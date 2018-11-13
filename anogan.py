@@ -85,7 +85,7 @@ def load_model():
     return g, d
 
 ### train generator and discriminator
-def train(BATCH_SIZE, X_train):
+def train(BATCH_SIZE, X_train, n_EPOCH):
     
     ### model define
     d = discriminator_model()
@@ -99,7 +99,7 @@ def train(BATCH_SIZE, X_train):
     d.compile(loss='mse', optimizer=d_optim)
     
 
-    for epoch in range(10):
+    for epoch in range(n_EPOCH):
         print ("Epoch is", epoch)
         n_iter = int(X_train.shape[0]/BATCH_SIZE)
         progress_bar = Progbar(target=n_iter)
