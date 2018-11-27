@@ -15,6 +15,8 @@ import math
 
 from keras.utils. generic_utils import Progbar
 
+inputshape = (64, 64, 1)
+
 ### combine images for visualization
 def combine_images(generated_images):
     num = generated_images.shape[0]
@@ -32,10 +34,10 @@ def combine_images(generated_images):
 ### generator model define
 def generator_model():
     inputs = Input((10,))
-    fc1 = Dense(input_dim=10, units=128*7*7)(inputs)
+    fc1 = Dense(input_dim=10, units=128*inputshape[0]//4*inputshape[1]//4)(inputs)
     fc1 = BatchNormalization()(fc1)
     fc1 = LeakyReLU(0.2)(fc1)
-    fc2 = Reshape((7, 7, 128), input_shape=(128*7*7,))(fc1)
+    fc2 = Reshape((inputshape[0]//4, inputshape[1]//4, 128), input_shape=(128*inputshape[0]//4*inputshape[1]//4,))(fc1)
     up1 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(fc2)
     conv1 = Conv2D(64, (3, 3), padding='same')(up1)
     conv1 = BatchNormalization()(conv1)
@@ -49,7 +51,7 @@ def generator_model():
 
 ### discriminator model define
 def discriminator_model():
-    inputs = Input((28, 28, 1))
+    inputs = Input((inputshape[0], inputshape[1], inputshape[2]))
     conv1 = Conv2D(64, (5, 5), padding='same')(inputs)
     conv1 = LeakyReLU(0.2)(conv1)
     pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
@@ -90,6 +92,8 @@ def train(BATCH_SIZE, X_train, n_EPOCH):
     ### model define
     d = discriminator_model()
     g = generator_model()
+    #d.summary()
+    #g.summary()
     d_on_g = generator_containing_discriminator(g, d)
     d_optim = RMSprop(lr=0.0004)
     g_optim = RMSprop(lr=0.0002)
@@ -119,6 +123,8 @@ def train(BATCH_SIZE, X_train, n_EPOCH):
                 cv2.imwrite('./result/'+str(epoch)+"_"+str(index)+".png", image)
 
             # attach label for training discriminator
+            #print("image_batch shape", image_batch.shape)
+            #print("generated_images shape", generated_images.shape)
             X = np.concatenate((image_batch, generated_images))
             y = np.array([1] * BATCH_SIZE + [0] * BATCH_SIZE)
             
